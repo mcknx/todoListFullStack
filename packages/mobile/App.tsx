@@ -1,120 +1,103 @@
-import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Platform,
-  SafeAreaView,
-} from 'react-native';
-import {addToDo, getAllToDo, updateToDo, deleteToDo} from 'shared';
-import ToDo from './components/Todo';
+// src/App.tsx
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {colors, typography, commonStyles} from './theme/theme';
+
+import HomeScreen from './pages/HomeScreen';
+import SystemScreen from './pages/SystemScreen';
+import EventsScreen from './pages/EventsLogScreen';
+import ControlsScreen from './pages/ControlsScreen';
+import CamerasScreen from './pages/CamerasScreen';
+import MoreScreen from './pages/MoreScreen';
 
 const App: React.FC = () => {
-  // State variables to manage ToDo items and their properties
-  const [toDo, setToDo] = useState<Array<{_id: string; text: string}>>([]);
-  const [text, setText] = useState<string>('');
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [toDoId, setToDoId] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('Home');
 
-  // Fetch all ToDo items from the server on component mount
-  useEffect(() => {
-    const res = getAllToDo(setToDo, Platform.OS);
-    console.log('ressssssssssssssssssssssss', res)
-  }, []);
-
-  // Function to enter update mode for a specific ToDo item
-  const updateMode = (_id: string, text: string) => {
-    setIsUpdating(true);
-    setText(text);
-    setToDoId(_id);
-  };
-
-  // Function to handle adding or updating ToDo item
-  const handleAddOrUpdateToDo = () => {
-    if (isUpdating) {
-      // If in update mode, call updateToDo function
-      updateToDo(toDoId, text, setToDo, setText, setIsUpdating, Platform.OS);
-    } else {
-      // If not in update mode, call addToDo function
-      addToDo(text, setText, setToDo, Platform.OS);
+  const renderScreen = () => {
+    switch (activeTab) {
+      case 'Home':
+        return <HomeScreen />;
+      case 'System':
+        return <SystemScreen />;
+      case 'Events':
+        return <EventsScreen />;
+      case 'Controls':
+        return <ControlsScreen />;
+      case 'Cameras':
+        return <CamerasScreen />;
+      case 'More':
+        return <MoreScreen />;
+      default:
+        return <HomeScreen />;
     }
   };
 
+  const TabButton = ({name, iconName}: {name: string; iconName: string}) => (
+    <TouchableOpacity
+      style={[styles.tabButton, activeTab === name && styles.activeTabButton]}
+      onPress={() => setActiveTab(name)}>
+      <Icon
+        name={iconName}
+        size={24}
+        color={
+          activeTab === name ? colors.text.primary : colors.tabBar.inactive
+        }
+      />
+      <Text
+        style={[
+          styles.tabButtonText,
+          activeTab === name && styles.activeTabButtonText,
+        ]}>
+        {name}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{flex: 1, paddingHorizontal: 12}}>
-        <Text style={styles.title}>ToDo App</Text>
-
-        <View style={styles.top}>
-          {/* Input field to add new ToDo items */}
-          <TextInput
-            style={styles.input}
-            placeholder="Add ToDos..."
-            value={text}
-            onChangeText={value => setText(value)}
-          />
-
-          {/* Add or Update button based on the current mode */}
-          <TouchableOpacity style={styles.add} onPress={handleAddOrUpdateToDo}>
-            <Text style={{color: '#FFF'}}>{isUpdating ? 'Update' : 'Add'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* FlatList to render the list of ToDo items */}
-        <FlatList
-          style={styles.list}
-          data={toDo}
-          keyExtractor={item => item._id}
-          renderItem={({item, index}) => (
-            <ToDo
-              key={index}
-              text={item.text}
-              updateMode={() => updateMode(item._id, item.text)}
-              deleteToDo={() => deleteToDo(item._id, setToDo, Platform.OS)}
-            />
-          )}
-        />
+    <View style={commonStyles.container}>
+      <View style={commonStyles.content}>{renderScreen()}</View>
+      <View style={styles.tabBar}>
+        <TabButton name="Home" iconName="home-outline" />
+        <TabButton name="System" iconName="shield-outline" />
+        <TabButton name="Controls" iconName="toggle-outline" />
+        <TabButton name="Events" iconName="list-outline" />
+        <TabButton name="More" iconName="ellipsis-horizontal-outline" />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#000',
-  },
-  top: {
+  tabBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: colors.tabBar.background,
+    height: 60,
+    borderTopWidth: 1,
+    borderTopColor: colors.tabBar.border,
   },
-  input: {
+  tabButton: {
     flex: 1,
-    padding: 10,
-    marginRight: 10,
-    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
     borderWidth: 1,
-    borderRadius: 8,
+    borderColor: colors.tabBar.border,
+    backgroundColor: colors.tabBar.background,
   },
-  add: {
-    padding: 10,
-    backgroundColor: '#000',
-    borderRadius: 8,
+  activeTabButton: {
+    backgroundColor: colors.tabBar.active,
   },
-  list: {
-    flex: 1,
+  tabButtonText: {
+    ...typography.tabButtonText,
+    color: colors.tabBar.inactive,
+    marginTop: 4,
+  },
+  activeTabButtonText: {
+    color: colors.text.primary,
+    fontWeight: 'bold',
   },
 });
 

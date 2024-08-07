@@ -15,7 +15,8 @@
     "@react-native-community/cli-platform-android": "^13.6.9",
     "react": "18.2.0",
     "react-native": "0.72.3",
-    "react-native-vector-icons": "^10.0.0",
+    "react-native-date-picker": "^5.0.4",
+    "react-native-vector-icons": "^10.1.0",
     "shared": "1.0.0"
   },
   "devDependencies": {
